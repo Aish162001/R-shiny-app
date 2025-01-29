@@ -1,0 +1,1187 @@
+---
+title: "Visualisation"
+author: "Aishvarya"
+date: "2023-09-30"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+ <font size="5"> **Introduction:**</font>\
+Customer personality analysis helps the company find patterns in purchases and background of customers, to improvise on marketing strategies by finding the right customers to target. Purchasing pattern and methods of purchase of customers can be analysed and relevant measures leads to overall cost reduction.
+
+
+ <font size="5">**Data Description:**</font>\
+The dataset contains purchase preferences of various customers, amount spent on various product and mode of purchase\
+
+*Key Attributes*\
+Demographic information:\
+•	Education\
+•	Marital_Status\
+•	Income\
+•	Kidhome: Number of children in customer's household\
+•	Teenhome: Number of teenagers in customer's household\
+•	Dt_Customer: Date of customer's enrollment with the company\
+•	Recency: Number of days since customer's last purchase\
+•	Complain: 1 if the customer complained in the last 2 years, 0 otherwise\
+Products:\
+•	Wines\
+•	Fruits\
+•	Meat Products \
+•	Fish Products\
+•	Sweet products\
+•	Gold Products \
+Promotion:\
+•	NumDealsPurchases: Number of purchases made with a discount\
+•	AcceptedCmp n : 1 if customer accepted the offer in the nth campaign, 0 otherwise\
+•	Response: 1 if customer accepted the offer in the last campaign, 0 otherwise\
+Purchase methods:\
+•	Web Purchase \
+•	Catalog purchase\
+•	Store Purchase\
+
+
+
+tinytex::install_tinytex()
+
+
+
+
+```{r, echo=FALSE,results='hide',fig.keep='all',message=FALSE,warning=FALSE,fig.height=10,fig.width=10}
+a=read.csv("C:\\Users\\Lenovo\\Desktop\\New folder\\visualization\\marketing_campaign.csv",head=TRUE,sep="\t")
+
+library(lubridate)
+library(ggplot2)
+library(tidyverse)
+library(ggpubr)
+library(plotly)
+library(lubridate)
+library("scales")
+#dev.off()
+library(egg)
+library(tinytex)
+a <- as.data.frame(a)
+
+a <- subset(a, select = -c(ID, Z_CostContact,Z_Revenue))
+
+
+library(tidyr)
+a= a %>% drop_na()
+
+c<-a[1:3]
+
+
+cont=subset(a, select = -c(Year_Birth, Education,Marital_Status,Dt_Customer))
+
+for (i in names(cont)){
+  print(quantile(cont[[i]],probs=0.25,names=FALSE))
+  
+}
+
+m<-colnames(cont)
+print(m)
+m<-c(m)
+#print(class(m))
+
+for (i in names(cont)){
+  p<-findInterval(cont[[i]],c(quantile(cont[[i]],probs=0,names=FALSE),quantile(cont[[i]],probs=0.25,names=FALSE),quantile(cont[[i]],probs=0.5,names=FALSE),quantile(cont[[i]],probs=0.75,names=FALSE)))
+  #cont[[i]] <-data.frame(p)
+  cont[[i]]<-p
+}
+
+#converting year of birth to categorical
+p<-findInterval(a$Year_Birth,c(quantile(a$Year_Birth,probs=0,names=FALSE),quantile(a$Year_Birth,probs=0.25,names=FALSE),quantile(a$Year_Birth,probs=0.5,names=FALSE),quantile(a$Year_Birth,probs=0.75,names=FALSE)))
+#cont[[i]] <-data.frame(p)
+a$Year_Birth<-p
+
+
+a$Education<-as.integer(factor(a$Education,levels = c("2n Cycle","Basic","Graduation","Master","PhD")))
+
+
+a$Marital_Status<-as.integer(factor(a$Marital_Status,levels = c("Absurd","Alone","Divorced","Married","Single","Together","Widow","YOLO")))
+
+dt<-dmy(a$Dt_Customer)
+
+dys<-yday(dt)-1
+
+#print(a)
+
+a$Dt_Customer<-dys
+
+
+
+library(lubridate)
+ref_date <- dmy('01-01-2012')
+#x$Dt_Customer <- as.numeric(difftime(x$Dt_Customer, ref_date))
+
+#print(x)
+p<-findInterval(a$Dt_Customer,c(quantile(a$Dt_Customer,probs=0,names=FALSE),quantile(a$Dt_Customer,probs=0.25,names=FALSE),quantile(a$Dt_Customer,probs=0.5,names=FALSE),quantile(a$Dt_Customer,probs=0.75,names=FALSE)))
+#cont[[i]] <-data.frame(p)
+a$Dt_Customer<-p
+
+
+cont<-data.frame(cont)
+
+for (i in colnames(cont)){
+  print(i)
+}
+
+library(ggrepel)
+
+#print(cont)
+
+cont<-cbind(a[1:3],a[7],cont)
+
+category<-cont[1:8]
+continuous<-cont[9:26]
+#convert dataframe to csv/excel
+library(writexl)
+
+catcont<-cbind(c,a[4:26])
+
+
+#--------------------------------------------------------
+
+library(readxl)
+
+x<-read_excel("D:\\originalxlsx.xlsx")
+
+x <- subset(x, select = -c(ID, Z_CostContact,Z_Revenue))
+
+x= x %>% drop_na()
+
+#head(x)
+
+summed_spendings <- rowSums(x[, c(9, 10, 11, 12,13,14)])
+x <-cbind(x,summed_spendings)
+
+
+
+b<-c(1:2216)
+cbind(x,b)
+
+#people with no kids spend more than with kids
+
+
+
+
+x$Kidhome <- as.character(x$Kidhome)
+
+x$AcceptedCmp1 <- as.character(x$AcceptedCmp1)
+x$AcceptedCmp2 <- as.character(x$AcceptedCmp2)
+x$AcceptedCmp3 <- as.character(x$AcceptedCmp3)
+x$AcceptedCmp4 <- as.character(x$AcceptedCmp4)
+x$AcceptedCmp5 <- as.character(x$AcceptedCmp5)
+x$Response <- as.character(x$Response)
+
+
+
+
+p1<-findInterval(a$Income,c(quantile(a$Income,probs=0,names=FALSE),quantile(a$Income,probs=0.25,names=FALSE),quantile(a$Income,probs=0.5,names=FALSE),quantile(a$Income,probs=0.75,names=FALSE)))
+x<-cbind(x,p1)
+
+
+#income and spending positive correlation
+
+
+p2<-findInterval(x$summed_spendings,c(quantile(x$summed_spendings,probs=0,names=FALSE),quantile(x$summed_spendings,probs=0.25,names=FALSE),quantile(x$summed_spendings,probs=0.5,names=FALSE),quantile(x$summed_spendings,probs=0.75,names=FALSE)))
+
+
+x<-cbind(x,p2)
+Recencylevel<-findInterval(x$Recency,c(quantile(x$Recency,probs=0,names=FALSE),quantile(x$Recency,probs=0.25,names=FALSE),quantile(x$Recency,probs=0.5,names=FALSE),quantile(x$Recency,probs=0.75,names=FALSE)))
+x<-cbind(x,Recencylevel)
+
+ssscum<-findInterval(x$summed_spendings,c(quantile(x$summed_spendings,probs=0,names=FALSE),quantile(x$summed_spendings,probs=0.25,names=FALSE),quantile(x$summed_spendings,probs=0.5,names=FALSE),quantile(x$summed_spendings,probs=0.75,names=FALSE)))
+x<-cbind(x,ssscum)
+
+Recencycum<-findInterval(x$Recency,c(quantile(x$Recency,probs=0,names=FALSE),quantile(x$Recency,probs=0.25,names=FALSE),quantile(x$Recency,probs=0.5,names=FALSE),quantile(x$Recency,probs=0.75,names=FALSE)))
+x<-cbind(x,Recencycum)
+
+
+
+#highest spenders are no children
+# ggplot(x, aes(x = Kidhome, y = summed_spendings)) +
+#   geom_bar(stat = "identity")+ 
+#   scale_x_continuous(labels = comma) + 
+#   scale_y_continuous(labels = comma)+
+#   facet_grid(~Teenhome)
+
+#needs to be fixed
+
+# 
+# 
+# ggplot(x, aes(x = p1, y = ssscum,fill=Kidhome)) +
+#   geom_bar(stat = "identity")+
+#   facet_grid(~Teenhome)
+
+
+
+
+#correlation between products
+
+
+
+# ggplot(x, aes(MntWines,MntMeatProducts)) +
+#   geom_point()
+
+
+head(x)
+products<-x[9:14]
+head(products)
+
+
+
+cor(products)
+
+library(pheatmap)
+library(RColorBrewer)
+breaksList = seq(-1, 1, by = 0.1)
+
+head(x)
+
+
+
+contvi<-cbind(x[4],x[8:19],x[27:28])
+cor(contvi)
+
+
+agecum<-findInterval(x$AGE,c(quantile(x$AGE,probs=0,names=FALSE),quantile(x$AGE,probs=0.25,names=FALSE),quantile(x$AGE,probs=0.5,names=FALSE),quantile(x$AGE,probs=0.75,names=FALSE)))
+
+x<-cbind(x,agecum)
+
+#number 1 is interesting
+#number 2 good correlation
+#no 3 good correlation
+#no 4 good correlation
+#no 5 good negative correlation
+
+
+
+
+
+
+
+
+
+#par(mfrow = c(2, 3))
+
+
+
+
+# 
+# 
+# e1<-ggplot(x, aes(x=Education)) +
+#   geom_bar()
+# e2<-ggplot(x, aes(x=Marital_Status)) +
+#   geom_bar()
+# e3<-ggplot(x, aes(x=Kidhome)) +
+#   geom_bar()
+# e4<-ggplot(x, aes(x=Teenhome)) +
+#   geom_bar()
+# e5<-ggplot(x, aes(x=Response)) +
+#   geom_bar()
+# e6<-ggplot(x, aes(x=Complain)) +
+#   geom_bar()
+# 
+# 
+# ggarrange(e1,e2,e3,e4,e5,e6, ncol = 2, nrow = 3,widths = c(0.25, 0.25))
+
+dayscum<-findInterval(x$days,c(quantile(x$days,probs=0,names=FALSE),quantile(x$days,probs=0.25,names=FALSE),quantile(x$days,probs=0.5,names=FALSE),quantile(x$days,probs=0.75,names=FALSE)))
+
+x<-cbind(x,dayscum)
+
+#plots
+
+#Univariate plots
+inc<-ggplot(x, aes(x = Income))+ 
+  scale_x_continuous(labels = comma) + 
+  scale_y_continuous(labels = comma) +
+  geom_density()+
+  geom_density(color="darkblue", fill="lightblue")+ 
+  labs(caption = "Min.   :  1730 \n Mean   : 52247\n Max.   :666666\nSD:25173.08")
+# 
+# rec<-ggplot(x, aes(x = Recency)) +
+#   geom_density()+
+#   geom_density(color="darkgreen", fill="lightgreen")
+
+aag<-ggplot(x, aes(x = AGE)) +
+  geom_density()+
+  geom_density(color="violet", fill="pink")+
+  labs(caption = "Min.   : 27.00\nMean   : 54.18\nMax.   :130.00\nSD:11.9855")
+
+
+
+dfpie <- x %>% 
+  group_by(Education) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+
+edd<-ggplot(dfpie, aes(x = "", y = perc, fill = Education)) +
+  geom_col() +
+  geom_label_repel(aes(label = labels),
+            position = position_stack(vjust = 0.5))+
+  guides(
+  fill = guide_legend(
+    title = "Education",
+    override.aes = aes(label = "")
+  )
+)+
+  coord_polar(theta = "y")+
+  theme(axis.text.x  = element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid  = element_blank())
+
+ms<-ggplot(x, aes(x=as.factor(Marital_Status), fill=as.factor(Marital_Status) )) + 
+  geom_bar(color="blue", fill=rgb(0.1,0.4,0.5,0.7)) +
+  labs(x="Marital Status")+
+  theme(legend.position="none")+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# dda<-ggplot(x, aes(x = days)) +
+#   geom_density()+
+#   geom_density(color="black", fill="yellow")
+
+textinf <- "Inference:
+1) 88% of the customers have atleast 1 degree and 38% have more than 1 degree.
+2) 95% (2 Sigma) of the customers have age between 30 and 78
+3) The salary of the customers mostly lie between 25k and 75k"
+
+# Create a text grob
+tgrobinf <- text_grob(textinf,size = 35)
+# Draw the text
+plot_inf <- as_ggplot(tgrobinf) + theme(plot.margin = margin(2,2,2,2, "cm"))
+
+
+
+
+text <- "Demographic Information"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 35)
+# Draw the text
+plot_0 <- as_ggplot(tgrob) + theme(plot.margin = margin(0,0,0,0, "cm"))
+
+ggpubr::ggarrange(plot_0,NULL,inc,aag,edd,ms,plot_inf,ncol = 2,nrow = 4,heights = c(50,50))
+
+textinf <- "Inference:
+1) 88% of the customers have atleast 1 degree and 38% have more than 1 degree.
+2) 95% (2 Sigma) of the customers have age between 30 and 78
+3) The salary of the customers mostly lie between 25k and 75k"
+
+# Create a text grob
+tgrobinf <- text_grob(textinf,size = 10)
+# Draw the text
+#as_ggplot(tgrobinf) + theme(plot.margin = margin(0.5,0.5,0.5,0.5, "cm"))
+
+#ggpubr::ggarrange(a1,a2,ncol = 1,nrow = 2,heights = c(50,50))
+```
+
+```{r, echo=FALSE,results='hide',fig.keep='all',message=FALSE,warning=FALSE}
+
+b1<-ggplot(x, aes(x = MntWines)) +
+  geom_density()+
+  geom_density(color="darkblue", fill="lightblue")+
+  scale_x_continuous(breaks=seq(0,1500,by=100))
+
+b2<-ggplot(x, aes(x = MntFishProducts)) +
+  geom_density()+
+  geom_density(color="darkblue", fill="lightblue")+
+  scale_x_continuous(breaks=seq(0,1500,by=100))
+
+b3<-ggplot(x, aes(x = MntFruits)) +
+  geom_density()+
+  geom_density(color="darkblue", fill="lightblue")+
+  scale_x_continuous(breaks=seq(0,1500,by=100))
+
+b4<-ggplot(x, aes(x = MntGoldProds)) +
+  geom_density()+
+  geom_density(color="darkblue", fill="lightblue")+
+  scale_x_continuous(breaks=seq(0,1500,by=100))
+
+b5<-ggplot(x, aes(x = MntGoldProds)) +
+  geom_density()+
+  geom_density(color="darkblue", fill="lightblue")+
+  scale_x_continuous(breaks=seq(0,1500,by=100))
+
+b6<-ggplot(x, aes(x = MntSweetProducts)) +
+  geom_density()+
+  geom_density(color="darkblue", fill="lightblue")+
+  scale_x_continuous(breaks=seq(0,1500,by=100))
+
+
+
+text <- "Products distribution"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 20)
+# Draw the text
+plot_0 <- as_ggplot(tgrob) + theme(plot.margin = margin(1,1,1,1, "cm"))
+
+#ggpubr::ggarrange(plot_0,NULL,b1,b2,b3,b4,b5,b6,ncol = 2,nrow = 4,heights = c(2,2))
+
+
+
+# 
+# sssss1<-egg::ggarrange(inc,aag , ncol = 2, nrow = 1,widths = c(1, 1))
+# annotate_figure(sssss1, top = text_grob("Univariate plots", 
+#                                       color = "darkgreen", face = "bold", size = 14))
+
+catalogsum<-sum(x$NumCatalogPurchases)
+webpursum<-sum(x$NumWebPurchases)
+storesum<-sum(x$NumStorePurchases)
+
+catalogcnt<-catalogsum/2216
+webpurcnt<-webpursum/2216
+storecnt<-storesum/2216
+
+hh1<-ggplot(x, aes(x=NumCatalogPurchases)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white",binwidth = 1)+
+ geom_density(alpha=.2, fill="#FF6666")
+
+# hh2<-ggplot(x, aes(x=NumDealsPurchases)) + 
+#  geom_histogram(aes(y=..density..), colour="black", fill="white",binwidth = 2)+
+#  geom_density(alpha=.2, fill="#FF6666")
+
+hh3<-ggplot(x, aes(x=NumWebPurchases)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white",binwidth = 1)+
+ geom_density(alpha=.2, fill="#FF6666")
+
+hh4<-ggplot(x, aes(x=NumStorePurchases)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white",binwidth = 1)+
+ geom_density(alpha=.2, fill="#FF6666")
+
+# hh5<-ggplot(x, aes(x=NumWebVisitsMonth)) + 
+#  geom_histogram(aes(y=..density..), colour="black", fill="white",binwidth = 1)+
+#  geom_density(alpha=.2, fill="#FF6666")
+
+
+method_pur <- data.frame(
+  group=c("NumCatalogPurchases","NumWebPurchases","NumStorePurchases"),
+  value=c(catalogsum,webpursum,storesum)
+)
+
+# Basic piechart
+combined<-ggplot(method_pur, aes(x="", y=value, fill=group)) +
+  geom_bar(stat="identity", width=1)+
+  guides(fill = guide_legend(
+    title = "Distribution of Purchase Methods",
+    override.aes = aes(label = "")))+
+  coord_polar("y", start=0)+
+  theme(axis.text.x  = element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid  = element_blank())
+
+
+
+text <- "Distribution of Purchase methods"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 10)
+# Draw the text
+plot_0 <- as_ggplot(tgrob) + theme(plot.margin = margin(3,3,3,3, "cm"))
+
+ggpubr::ggarrange(plot_0,NULL,combined,hh1,hh3,hh4,ncol = 2,nrow = 4,heights = c(5,5))
+
+
+
+####
+###-----------------------------------------------------------------------------------------
+
+x$Education<-as.integer(factor(x$Education,levels = c("2n Cycle","Basic","Graduation","Master","PhD")))
+
+
+x$Marital_Status<-as.integer(factor(x$Marital_Status,levels = c("Absurd","Alone","Divorced","Married","Single","Together","Widow","YOLO")))
+
+
+
+library(ggrepel)
+new=read.csv("C:\\Users\\Lenovo\\Desktop\\New folder\\visualization\\marketing_campaign.csv",head=TRUE,sep="\t")
+
+new= new %>% drop_na()
+
+dayscum<-findInterval(x$days,c(quantile(x$days,probs=0,names=FALSE),quantile(x$days,probs=0.25,names=FALSE),quantile(x$days,probs=0.5,names=FALSE),quantile(x$days,probs=0.75,names=FALSE)))
+
+new$Teenhome <- as.factor(new$Teenhome)
+new$Complain <- as.factor(new$Complain)
+
+new<-cbind(new,dayscum)
+x$Response <- as.character(x$Response)
+
+dfpie <- x %>% 
+  group_by(Kidhome) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+
+pp3<-ggplot(dfpie, aes(x = "", y = perc, fill = Kidhome)) +
+  geom_col() +
+  geom_label_repel(aes(label = labels),
+            position = position_stack(vjust = 0.5))+
+  guides(
+  fill = guide_legend(
+    title = "Kidhome",
+    override.aes = aes(label = "")
+  )
+)+
+  coord_polar(theta = "y")+
+  theme(axis.text.x  = element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid  = element_blank())
+
+
+
+
+dfpie <- new %>% 
+  group_by(Teenhome) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+
+pp4<-ggplot(dfpie, aes(x = "", y = perc, fill = Teenhome)) +
+  geom_col() +
+  geom_label_repel(aes(label = labels),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y")+
+  guides(
+  fill = guide_legend(
+    title = "Teenhome",
+    override.aes = aes(label = "")
+  )
+)+
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid  = element_blank())
+dfpie <- x %>% 
+  group_by(Response) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+
+pp5<-ggplot(dfpie, aes(x = "", y = perc, fill = Response)) +
+  geom_col() +
+  geom_label_repel(aes(label = labels),
+            position = position_stack(vjust = 0.5))+
+  guides(
+  fill = guide_legend(
+    title = "Response",
+    override.aes = aes(label = "")
+  )
+) +
+  coord_polar(theta = "y")+
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid  = element_blank())
+dfpie <- new %>% 
+  group_by(Complain) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+
+pp6<-ggplot(dfpie, aes(x = "", y = perc, fill = Complain)) +
+  geom_col() +
+  geom_label_repel(aes(label = labels))+
+  guides(
+  fill = guide_legend(
+    title = "Complain",
+    override.aes = aes(label = "")
+  )
+) +
+  coord_polar(theta = "y")+
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid  = element_blank())
+
+#sssss4<-ggarrange(pp3,pp4,pp5,pp6, ncol = 2, nrow = 2,widths = c(5, 5))
+
+
+text <- "Discrete Univariate Analysis"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 10)
+# Draw the text
+plot_0 <- as_ggplot(tgrob) + theme(plot.margin = margin(3,3,3,3, "cm"))
+
+#ggpubr::ggarrange(plot_0,NULL,pp3, pp4,pp5,pp6,ncol = 2,nrow = 3,heights = c(5,5))
+
+
+
+
+
+
+
+#annotate_figure(sssss4, top = text_grob("Discrete Univariate Analysis", 
+                                      #color = "darkblue", face = "bold", size = 14))
+
+
+#correlation plots
+
+# pheatmap(cor(products),cluster_rows = FALSE, cluster_cols =FALSE,color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(length(breaksList)),
+#          breaks = breaksList)
+```
+Correlation matrix
+
+```{r, echo=FALSE,results='hide',fig.keep='all',message=FALSE,warning=FALSE,fig.height=8,fig.width=8}
+contvi<-subset(contvi, select = -c(days))
+pheatmap(cor(contvi),cluster_rows = FALSE, cluster_cols =FALSE,color = colorRampPalette((c("#DC143C", "white", "#00FF00")))(length(breaksList)),
+         breaks = breaksList)
+
+text <- "Correlation matrix"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 10)
+# Draw the text
+plot_0<-as_ggplot(tgrob) + theme(plot.margin = margin(3,3,3,3, "cm"))
+
+
+
+
+text1 <- "1) Wines are mostly bought in store and Catalogue
+2) meat products are predominantly bought as catalogue
+3) People who buy wine also buy meat
+4) People who buy meat also buy fish"
+
+# Create a text grob
+tgrob1 <- text_grob(text1,size = 10)
+# Draw the text
+plpl<-as_ggplot(tgrob1) + theme(plot.margin = margin(3,3,3,3, "cm"))
+
+#ggpubr::ggarrange(plot_0,maaap,plpl,ncol = 2,nrow = 2,heights = c(5,5))
+
+
+```
+
+1) Wines are mostly bought in store and Catalogue
+2) meat products are predominantly bought as catalogue
+3) People who buy wine also buy meat
+4) People who buy meat also buy fish
+
+
+
+```{r, echo=FALSE,results='hide',fig.keep='all',message=FALSE,warning=FALSE}
+#bivariate plots
+kidsum<-ggplot(data = x, aes(x = Kidhome, y = summed_spendings)) +
+  geom_boxplot(aes(color=factor(Kidhome)))+
+  theme(legend.position="none")+ 
+  scale_fill_discrete(name = "Number of kids")+
+  guides(color = guide_legend(title = "Number of kids"))+
+  ggtitle("Spending vs Number of children at home(Kids and Teens")+
+  labs(caption = "Customers without kids spend more money")
+  #xlim(0,1,2)
+
+#people with more teens spend a lot but more kids spend less
+x$Teenhome <- as.character(x$Teenhome)
+teensum<-ggplot(x, aes(x =Teenhome ,y=summed_spendings)) +
+  geom_boxplot(aes(color = factor(Teenhome)))+
+  theme(legend.position="none")+
+  guides(color = guide_legend(title = "Number of teens"))+
+  ggtitle("Summed spendings by Number of teens")+ 
+  scale_fill_discrete(name = "Number of teens")+
+  labs(caption = "On an average,customers with 2 teens spend comparitively more and, unlike in case of kids")
+
+text <- "Summed_spending comparison: Kids vs Teens"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 20)
+# Draw the text
+plot_0 <- as_ggplot(tgrob) + theme(plot.margin = margin(3,3,3,3, "cm"))
+
+
+ggpubr::ggarrange(plot_0,kidsum,teensum,ncol = 1,nrow = 3,heights = c(5,5))
+
+# 
+# ggplot(data = x, aes(x = Kidhome, y = NumDealsPurchases)) +
+#   geom_boxplot(aes(color=factor(Kidhome)))+
+#   theme(legend.position="none")+
+#   guides(color = guide_legend(title = "Number of kids"))+
+#   ggtitle("Number of deals purchased \n by Number of kids")+
+#   scale_fill_discrete(name = "Number of kids")+
+#   labs(caption = "Customers with kids purchase a lot of deals")
+
+
+ll1<-ggplot(x, aes(x = b,y=summed_spendings)) +
+  geom_point(aes(color = factor(p1)))+
+  guides(color = guide_legend(title = "Income"))+
+  labs(caption = "Income is split into 4 quantiles.Spendings and income show a positive correlation.Hence spending increases with income")+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())+ ggtitle("Summed spendings  \n factored by Income")+
+  facet_grid(~p1)
+
+
+
+
+#Low income people take more dealpurchases
+ll2<-ggplot(x, aes(x = NumDealsPurchases,y=Income)) +
+  geom_boxplot(aes(color=factor(NumDealsPurchases)))+
+  theme(legend.position="none") + 
+  scale_x_continuous(labels = comma) + 
+  scale_y_continuous(labels = comma)+ ggtitle("Number of deals purchased \n by Income")+ 
+  scale_fill_discrete(name = "Number of discount availed")+
+  labs(x="Num discount availed",caption = "Income and discount availed have a negative correlation.That is bargaining reduces as income increases")
+
+
+
+text <- "Income vs spending and discount availed"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 20)
+# Draw the text
+plot_0 <- as_ggplot(tgrob) + theme(plot.margin = margin(3,3,3,3, "cm"))
+
+
+ggpubr::ggarrange(plot_0,ll1,ll2,ncol = 1,nrow = 3,heights = c(5,5))
+#dayscum vs purchases
+# nn1<-ggplot(data=x, aes(dayscum, fill=factor(NumDealsPurchases))) +
+#   geom_bar(position=position_dodge())
+# 
+# nn2<-ggplot(data=x, aes(dayscum, fill=factor(NumWebPurchases))) +
+#   geom_bar(position=position_dodge())
+# 
+# nn3<-ggplot(data=x, aes(dayscum, fill=factor(NumCatalogPurchases))) +
+#   geom_bar(position=position_dodge())
+# 
+# nn4<-ggplot(data=x, aes(dayscum, fill=factor(NumStorePurchases))) +
+#   geom_bar(position=position_dodge())
+# 
+# nn5<-ggplot(data=x, aes(dayscum, fill=factor(NumWebVisitsMonth))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "New Legend Title")
+# 
+# sssss3<-egg::ggarrange(nn1,nn2,nn3,nn4,nn5, ncol = 2, nrow = 3,widths = c(1, 1))
+# annotate_figure(sssss3, top = text_grob("customer since by products", 
+#                                       color = "darkblue", face = "bold", size = 14))
+
+
+
+income_cat_variable <- cut(x$Income,
+                       breaks=c(1728,35303,51381.5,68522,666699),
+                       labels=c('Level1', 'Level2', 'Level3', 'Level4'))
+
+x<-cbind(x,income_cat_variable)
+
+# ggplot(x,aes(x=MntWines, y=MntMeatProducts,color=income_cat_variable)) +
+#   geom_point(alpha=0.5) 
+
+
+# ggplot(data=x,aes(x=summed_spendings, group=Kidhome, fill=Kidhome, position="stack"))+
+#   geom_density(adjust=1.5, position="fill")+
+#   labs(caption = "Customers without kids spend more money")
+# 
+# ggplot(data=x,aes(x=summed_spendings, group=Teenhome, fill=Teenhome, position="stack")) +
+#   geom_density(adjust=1.5, position="fill")+
+#   labs(caption = "Customers with 2 teens spend little bit more (different from kids case)")
+
+ggplot(x, aes(x = Recencylevel,fill=factor(Response))) +
+  geom_bar()+ 
+  scale_fill_discrete(name = "Response")+
+  ggtitle("Recency level vs Response")
+
+```
+Recency levels have been split into 4 quantiles with 1 being the most recent.
+Response 0 corresponds rejection of offer and 1 corresponds to acceptance of offer of final campaign.
+Customers who have purchased recently have accepted the campaign compared\n to those who haven't visited the store in a while
+```{r, echo=FALSE,fig.height = 55, fig.width = 55}
+plot1<-ggplot(data=x, aes(p1, fill=factor(NumDealsPurchases))) +
+  geom_bar(position=position_dodge())+
+  xlab("Income")+
+  theme(axis.text=element_text(size=30),
+        axis.title=element_text(size=40,face="bold"))+
+  theme(legend.key.size = unit(7, 'cm'), #change legend key size
+        legend.key.height = unit(2, 'cm'), #change legend key height
+        legend.key.width = unit(3, 'cm'), #change legend key width
+        legend.title = element_text(size=30), #change legend title font size
+        legend.text = element_text(size=25))+ 
+  scale_fill_discrete(name = "NumDealsPurchases")
+
+
+plot2<-ggplot(data=x, aes(p1, fill=factor(NumWebPurchases))) +
+  geom_bar(position=position_dodge())+
+  xlab("Income")+
+  theme(axis.text=element_text(size=30),
+        axis.title=element_text(size=40,face="bold"))+
+  theme(legend.key.size = unit(7, 'cm'), #change legend key size
+        legend.key.height = unit(2, 'cm'), #change legend key height
+        legend.key.width = unit(3, 'cm'), #change legend key width
+        legend.title = element_text(size=30), #change legend title font size
+        legend.text = element_text(size=25))+ 
+  scale_fill_discrete(name = "NumWebPurchases")
+
+plot3<-ggplot(data=x, aes(p1, fill=factor(NumCatalogPurchases))) +
+  geom_bar(position=position_dodge())+ 
+  xlab("Income")+
+  theme(axis.text=element_text(size=30),
+        axis.title=element_text(size=40,face="bold"))+
+  theme(legend.key.size = unit(7, 'cm'), #change legend key size
+        legend.key.height = unit(2, 'cm'), #change legend key height
+        legend.key.width = unit(3, 'cm'), #change legend key width
+        legend.title = element_text(size=30), #change legend title font size
+        legend.text = element_text(size=25))+ 
+  scale_fill_discrete(name = "NumCatalogPurchases")
+
+plot4<-ggplot(data=x, aes(p1, fill=factor(NumStorePurchases))) +
+  geom_bar(position=position_dodge())+ 
+  xlab("Income")+
+  theme(axis.text=element_text(size=30),
+        axis.title=element_text(size=40,face="bold"))+
+  theme(legend.key.size = unit(7, 'cm'), #change legend key size
+        legend.key.height = unit(2, 'cm'), #change legend key height
+        legend.key.width = unit(3, 'cm'), #change legend key width
+        legend.title = element_text(size=30), #change legend title font size
+        legend.text = element_text(size=25))+ 
+  scale_fill_discrete(name = "NumStorePurchases")
+
+plot5<-ggplot(data=x, aes(p1, fill=factor(NumWebVisitsMonth))) +
+  geom_bar(position=position_dodge())+ 
+  xlab("Income")+
+  theme(axis.text=element_text(size=30),
+        axis.title=element_text(size=40,face="bold"))+
+  theme(legend.key.size = unit(7, 'cm'), #change legend key size
+        legend.key.height = unit(2, 'cm'), #change legend key height
+        legend.key.width = unit(3, 'cm'), #change legend key width
+        legend.title = element_text(size=30), #change legend title font size
+        legend.text = element_text(size=25))+
+  scale_fill_discrete(name = "NumWebVisitsMonth")
+
+text1 <- "Income is divided into 4 categories by quantiles\nPlot2,Plot3 and Plot4 shows positive correlation"
+
+# Create a text grob
+tgrob1 <- text_grob(text1,size = 60)
+# Draw the text
+plot_1 <- as_ggplot(tgrob1) + theme(plot.margin = margin(3,3,3,3, "cm"))
+
+
+
+text <- "Income level vs purchase methods"
+
+# Create a text grob
+tgrob <- text_grob(text,size = 80)
+# Draw the text
+plot_0 <- as_ggplot(tgrob) + theme(plot.margin = margin(10,10,10,10, "cm"))
+
+ggpubr::ggarrange(plot_0,NULL,plot2,plot3,plot4,plot_1,ncol = 2,nrow = 3,widths = c(25,25))
+
+
+# 
+# sssss<-egg::ggarrange(plot1,plot2,plot3,plot4,plot5, ncol = 2, nrow = 3,widths = c(1, 1))
+# annotate_figure(sssss, top = text_grob("Income level vs purchase methods", 
+#                                       color = "darkgreen", face = "bold", size = 14))
+#--------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
+```
+
+```{r, echo=FALSE,results='hide',fig.keep='all',warning=FALSE,message=FALSE}
+
+new$Response <- as.character(new$Response)
+ggplot(data=new, aes(Response, fill=factor(dayscum))) +
+  geom_bar(position=position_dodge())+
+  scale_fill_discrete(name = "customer since???")+
+  ggtitle("Response to campaign \n by customer since ")+
+  labs(caption = "Customers with early enrolment to company have\n accepted the final campaign more than others")
+
+
+
+
+x$Kidhome <- as.character(x$Kidhome)
+# x$Kidhome[x$Kidhome == 0] <- 'zero'
+# 
+# x$Kidhome <- as.character(x$Kidhome)
+# x$Kidhome[x$Kidhome == 1] <- 'one'
+# 
+# x$Kidhome <- as.character(x$Kidhome)
+# x$Kidhome[x$Kidhome == 2] <- 'two'
+
+ggplot(x, aes(x = p1, y = ssscum, fill = Kidhome)) + 
+  geom_col(position = position_stack())+
+  #theme(axis.title.x = "Income Level",axis.title.y = "Summed_spendings")+
+  facet_grid(~Teenhome) +
+  xlab("Income") + ylab("Summed_spendings")+
+  labs(title='My Title', subtitle='Teenhome',caption="Customers without kids and teens spend a lot")
+
+  
+
+
+library(ggridges)
+
+# Edulevels <- c("2n Cycle","Basic","Graduation","Master","PhD")
+# 
+# ggplot(x, aes(x = Income, y = factor(Education), fill = factor(Education))) +
+#   geom_density_ridges() + 
+#   scale_x_continuous(labels = comma) +
+#   #theme(axis.title.x = "Income Level",axis.title.y = "Education")
+#   theme_ridges() + 
+#   theme(legend.position = "none")+ 
+#     scale_x_discrete(labels= Edulevels)
+
+
+
+
+
+# dfpie <- x %>% 
+#   group_by(Education) %>% # Variable to be transformed
+#   count() %>% 
+#   ungroup() %>% 
+#   mutate(perc = `n` / sum(`n`)) %>% 
+#   arrange(perc) %>%
+#   mutate(labels = scales::percent(perc))
+# 
+# pp1<-ggplot(dfpie, aes(x = "", y = perc, fill = Education)) +
+#   geom_col() +
+#   geom_label_repel(aes(label = labels),
+#             position = position_stack(vjust = 0.5)) +
+#   coord_polar(theta = "y")+
+#   theme(axis.text = element_blank(),
+#         axis.ticks = element_blank(),
+#         panel.grid  = element_blank())
+# dfpie <- x %>% 
+#   group_by(Marital_Status) %>% # Variable to be transformed
+#   count() %>% 
+#   ungroup() %>% 
+#   mutate(perc = `n` / sum(`n`)) %>% 
+#   arrange(perc) %>%
+#   mutate(labels = scales::percent(perc))
+# 
+# pp2<-ggplot(dfpie, aes(x = "", y = perc, fill = Marital_Status)) +
+#   geom_col() +
+#   geom_label_repel(aes(label = labels)) +
+#   coord_polar(theta = "y")+
+#   theme(axis.text = element_blank(),
+#         axis.ticks = element_blank(),
+#         panel.grid  = element_blank())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#basic education is bad and their summed spendings is very low#change graph maybe?
+
+ggplot(new, aes(x = Income,y=summed_spendings)) +
+  geom_point(aes(color = factor(Education)))+
+  guides(color = guide_legend(title = "Education")) + 
+  scale_x_continuous(labels = comma) + 
+  scale_y_continuous(labels = comma)+ 
+  ggtitle("Plot of Income \n by Summed_spendings")+
+  facet_grid(~Education)+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(caption="Income and spending of customers with basic education is less than others")
+
+
+
+
+
+
+#somewhat ok
+
+# x$Complain <- as.character(x$Complain)
+# ggplot(data=x, aes(Complain, fill=factor(AGE))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Age")+ ggtitle("Complain count \n by Age") 
+# 
+# #each campaign accepted by income
+# pl1<-ggplot(data=x, aes(AcceptedCmp1, fill=factor(p1))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Income")
+# 
+# pl2<-ggplot(data=x, aes(AcceptedCmp2, fill=factor(p1))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Income")
+# 
+# pl3<-ggplot(data=x, aes(AcceptedCmp3, fill=factor(p1))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Income")
+# 
+# pl4<-ggplot(data=x, aes(AcceptedCmp4, fill=factor(p1))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Income")
+# 
+# pl5<-ggplot(data=x, aes(AcceptedCmp5, fill=factor(p1))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Income")
+# 
+# pln<-ggarrange(pl1,pl2,pl3,pl4,pl5, ncol = 2, nrow = 3,widths = c(0.25, 0.25)) 
+# 
+# annotate_figure(pln, top = text_grob("Campaign accepted or not by Income", 
+#                                       color = "red", face = "bold", size = 12))
+#each campaign accepted by #response
+#good
+#people who complained never accepted any campaign
+# pt1<-ggplot(data=x, aes(AcceptedCmp1, fill=factor(Complain))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Complain")
+# 
+# pt2<-ggplot(data=x, aes(AcceptedCmp2, fill=factor(Complain))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Complain")
+# 
+# pt3<-ggplot(data=x, aes(AcceptedCmp3, fill=factor(Complain))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Complain")
+# 
+# pt4<-ggplot(data=x, aes(AcceptedCmp4, fill=factor(Complain))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Complain")
+# 
+# pt5<-ggplot(data=x, aes(AcceptedCmp5, fill=factor(Complain))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Complain")
+# 
+# pt6<-ggplot(data=x, aes(Response, fill=factor(Complain))) +
+#   geom_bar(position=position_dodge())+ 
+#   scale_fill_discrete(name = "Complain")
+# 
+# ptn<-egg::ggarrange(pt1,pt2,pt3,pt4,pt5,pt6, ncol = 2, nrow = 3,widths = c(0.5, 0.5))
+# 
+# annotate_figure(ptn, top = text_grob("Campaign accepted or not \n by Complain", 
+#                                      color = "red", face = "bold", size = 14))
+
+#not great though
+#negative correlatiob b/w recency and accepting campaign coupons
+# cc1<-ggplot(x, aes(x = Recencylevel,fill=factor(AcceptedCmp1))) +
+#   geom_bar()+ 
+#   scale_fill_discrete(name = "AcceptedCmp1")
+# cc2<-ggplot(x, aes(x = Recencylevel,fill=factor(AcceptedCmp2))) +
+#   geom_bar()+ 
+#   scale_fill_discrete(name = "AcceptedCmp2")
+# cc3<-ggplot(x, aes(x = Recencylevel,fill=factor(AcceptedCmp3))) +
+#   geom_bar()+ 
+#   scale_fill_discrete(name = "AcceptedCmp3")
+# cc4<-ggplot(x, aes(x = Recencylevel,fill=factor(AcceptedCmp4))) +
+#   geom_bar()+ 
+#   scale_fill_discrete(name = "AcceptedCmp4")
+# cc5<-ggplot(x, aes(x = Recencylevel,fill=factor(AcceptedCmp5))) +
+#   geom_bar()+ 
+#   scale_fill_discrete(name = "AcceptedCmp5")
+# ccc<-ggarrange(cc1,cc2,cc3,cc4,cc5, ncol = 2, nrow = 3,widths = c(0.5, 0.5))
+# annotate_figure(ccc, top = text_grob("Campaign accepted or not \n by Recency", 
+#                                      color = "violet", face = "bold", size = 14))
+#this is so good and should be included
+#trim only reponse 1??
+
+
+
+####  UNIVARIATE plots
+
+#par(mfrow = c(2, 2))
+
+
+# 
+# sssss2<-egg::ggarrange(b1,b2,b3,b4,b5,b6, ncol = 2, nrow = 3,widths = c(1, 1))
+# annotate_figure(sssss2, top = text_grob("Products distribution", 
+#                                       color = "darkblue", face = "bold", size = 14))
+
+
+```
+
+```{r , echo=FALSE}
+library(tinytex)
+new=read.csv("C:\\Users\\Lenovo\\Desktop\\New folder\\visualization\\marketing_campaign.csv",head=TRUE,sep="\t")
+
+new= new %>% drop_na()
+
+summed_spendingsnew <- rowSums(new[, c(10, 11, 12,13,14,15)])
+new <-cbind(new,summed_spendingsnew)
+
+ssscumnew<-findInterval(new$summed_spendingsnew,c(quantile(new$summed_spendingsnew,probs=0,names=FALSE),quantile(new$summed_spendingsnew,probs=0.25,names=FALSE),quantile(new$summed_spendingsnew,probs=0.5,names=FALSE),quantile(new$summed_spendingsnew,probs=0.75,names=FALSE)))
+
+new<-cbind(new,ssscumnew)
+eeenew<-cbind(new[31],new[16:20])
+
+df_lo <- eeenew %>%
+  gather(P, value, 2:5)
+ggplot(df_lo, aes(x = ssscumnew, y = value, fill = P)) +
+  geom_col(position = "fill",stat="identity") +
+  ggtitle("Spendings by each method") +
+  xlab("Total Spendings") + ylab("Purchase method(Percentage)")+
+  scale_fill_discrete(name = "Purchase method")+
+  labs(caption="High spenders use catalog compared to others")
+
+# sum1<-sum(x$MntWines)
+# sum2<-sum(x$MntFruits)
+# sum3<-sum(x$MntMeatProducts)
+# sum4<-sum(x$MntFishProducts)
+# sum5<-sum(x$MntSweetProducts)
+# sum6<-sum(x$MntGoldProds)
+# 
+# 
+# 
+# ggplot(df_lo, aes(x = ssscumnew, y = value, fill = P)) +
+#   geom_col(position = "fill",stat="identity") +
+#   ggtitle("Spendings by each method") +
+#   xlab("Total Spendings") + ylab("Purchase method(Percentage)")+
+#   scale_fill_discrete(name = "Purchase method")+
+#   labs(caption="High spenders use catalog compared to others")
+
+  #theme(axis.title.x = "Summed spending",axis.title.y = "Amount")
+
+
+
+```
+
+Results:
+1.	Customers with no kids spend more money than customers with 1 or 2 kids but customers with more teens (2) spend a little higher than customers with 0 or 1 teens.
+2.	Customer’s Income and spending amount show a positive correlation
+3.	Customers with more income purchase less deals
+4.	Customers with zero kids purchase less deals
+5.	Customers with basic education spend way less than others
+6.	Customers who spend more, the purchase method is Catalog
+7.	Customers who have been long time customers have good response to final campaign
+8.	Meat products are more purchased through catalog rather than web.
+9.	Income has positive correlation with Number of Web, Catalog and Store Purchases but negative correlation with deals purchased.
+10.	High income customers visit the website way lesser times than others
+
+Conclusion:
+
+
+![Conclusion ](C:\\Users\\Lenovo\\Pictures\\Screenshots\\Screenshot (1633).png)
+
